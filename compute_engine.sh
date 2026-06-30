@@ -41,3 +41,12 @@ gcloud compute disks snapshot $INSTANCE_NAME \
 
 # Delete the VM
 gcloud compute instances delete $INSTANCE_NAME --zone=$ZONE --quiet
+
+# List machine types
+gcloud compute machine-types list
+
+# List available zones
+gcloud compute zones list
+
+# List snapshots
+gcloud compute snapshots list
