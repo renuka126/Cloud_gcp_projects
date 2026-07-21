@@ -1,0 +1,30 @@
+# Cloud Build config: builds the image and scans it for vulnerabilities
+steps:
+  # Step 1: Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA', '.']
+
+  # Step 2: Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA']
+
+  # Step 3: Scan the image for known vulnerabilities
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud artifacts docker images scan \
+          us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA \
+          --format='value(response.scan)' > /workspace/scan_id.txt
+
+        gcloud artifacts docker images list-vulnerabilities $(cat /workspace/scan_id.txt) \
+          --format='value(vulnerability.effectiveSeverity)' > /workspace/severities.txt
+
+        if grep -q "CRITICAL" /workspace/severities.txt; then
+          echo "Critical vulnerabilities found. Failing build."
+          exit 1
+        fi
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA'

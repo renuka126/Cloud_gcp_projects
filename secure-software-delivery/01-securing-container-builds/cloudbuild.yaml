@@ -1,0 +1,22 @@
+# Cloud Build config used for the trigger-based secure build pipeline
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # Build the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA', '.']
+
+  # Run unit tests before pushing anything
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['run', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA', 'npm', 'test']
+
+  # Push only if tests pass
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA']
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA'
+
+# Trigger note: this build config is wired to a Cloud Build trigger
+# that fires automatically on every push to the main branch of the source repo.

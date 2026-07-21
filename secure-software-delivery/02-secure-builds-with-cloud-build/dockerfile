@@ -1,0 +1,21 @@
+# Hardened Dockerfile example from the Securing Container Builds lab
+
+# Use a minimal base image to reduce attack surface
+FROM gcr.io/distroless/nodejs20-debian12
+
+# Set working directory
+WORKDIR /app
+
+# Copy only what's needed (avoid copying secrets, .git, node_modules, etc.)
+COPY package*.json ./
+COPY src/ ./src/
+
+# Run as a non-root user (distroless images already default to nonroot,
+# but being explicit helps if you switch base images later)
+USER nonroot
+
+# Expose only the port the app actually needs
+EXPOSE 8080
+
+# Start the app
+CMD ["src/index.js"]

@@ -1,0 +1,15 @@
+# Binary Authorization policy: only allow images with a valid attestation
+# from our trusted attestor to be deployed.
+
+defaultAdmissionRule:
+  evaluationMode: REQUIRE_ATTESTATION
+  enforcementMode: ENFORCED_BLOCK_AND_AUDIT_LOG
+  requireAttestationsBy:
+    - projects/PROJECT_ID/attestors/my-attestor
+
+# Optional: allow certain trusted image paths to bypass the rule
+# (e.g. Google-managed system images)
+globalPolicyEvaluationMode: ENABLE
+
+admissionWhitelistPatterns:
+  - namePattern: gcr.io/gke-release/*
